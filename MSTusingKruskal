@@ -1,0 +1,95 @@
+#include <stdio.h>
+
+#define MAX 10
+#define INF 9999
+
+int isVisited(int visited[], int a, int b, int count) {
+    int foundA = 0, foundB = 0;
+    for (int i = 0; i < count; i++) {
+        if (visited[i] == a) foundA = 1;
+        if (visited[i] == b) foundB = 1;
+    }
+    // Allow if one is visited and the other isn't
+    return (foundA && foundB); // means adding this edge would create a cycle
+}
+
+void swap(int a[3], int b[3]) {
+    for (int i = 0; i < 3; i++) {
+        int temp = a[i];
+        a[i] = b[i];
+        b[i] = temp;
+    }
+}
+
+void printMatrix(int mat[MAX][MAX], int V) {
+    for (int i = 0; i < V; i++) {
+        for (int j = 0; j < V; j++)
+            printf("%4d ", mat[i][j]);
+        printf("\n");
+    }
+}
+
+int main() {
+    int V, i, j, k = 0;
+    int input[MAX][MAX], edges[MAX * MAX][3], mst[MAX][MAX] = {0};
+    int visited_vertex[MAX] = {0}, count = 0;
+    int total_cost = 0, edges_added = 0;
+
+    printf("Enter number of vertices: ");
+    scanf("%d", &V);
+
+    printf("Enter the adjacency matrix:\n");
+    for (i = 0; i < V; i++)
+        for (j = 0; j < V; j++)
+            scanf("%d", &input[i][j]);
+
+    // Collect all edges (only lower triangle)
+    for (i = 0; i < V; i++) {
+        for (j = 0; j < i; j++) {
+            if (input[i][j] != 0) {
+                edges[k][0] = i;
+                edges[k][1] = j;
+                edges[k][2] = input[i][j];
+                k++;
+            }
+        }
+    }
+
+    // Sort edges by weight
+    for (i = 0; i < k - 1; i++) {
+        for (j = i + 1; j < k; j++) {
+            if (edges[i][2] > edges[j][2]) {
+                swap(edges[i], edges[j]);
+            }
+        }
+    }
+    
+
+    // Kruskal logic
+    for (i = 0; i < k && edges_added < V - 1; i++) {
+        int u = edges[i][0];
+        int v = edges[i][1];
+        int w = edges[i][2];
+
+        if (!isVisited(visited_vertex, u, v, count)) {
+            mst[u][v] = mst[v][u] = w;
+            total_cost += w;
+            edges_added++;
+
+            // Add both vertices to visited list if not already
+            int already_u = 0, already_v = 0;
+            for (j = 0; j < count; j++) {
+                if (visited_vertex[j] == u) already_u = 1;
+                if (visited_vertex[j] == v) already_v = 1;
+            }
+            if (!already_u) visited_vertex[count++] = u;
+            if (!already_v) visited_vertex[count++] = v;
+        }
+    }
+
+    printf("\nMST Matrix:\n");
+    printMatrix(mst, V);
+    printf("\nTotal cost of MST: %d\n", total_cost);
+
+    return 0;
+}
